@@ -1,0 +1,20 @@
+{
+	"name": "pulsebus",
+	"version": "1.0.0",
+	"description": "Interact with a PulseAudio server over DBus",
+	"main": "server.js",
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1",
+		"start": "node server.js"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://archive.voodoowarez.com/pulsebus"
+	},
+	"keywords": ["pulseaudio", "dbus"],
+	"author": "rektide de la faye",
+	"license": "X",
+	"dependencies": {
+		"dbus-native": "^0.2.0"
+	}
+}
