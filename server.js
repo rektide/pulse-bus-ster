@@ -17,7 +17,7 @@ function findPulseAddress( searchBusAddress){
 			if( err){
 				return reject( err)
 			}
-			lookup.Address(function( err, addr){
+			lookup.Address(function( err, address){
 				if( err){
 					return reject(err)
 				}
@@ -26,6 +26,40 @@ function findPulseAddress( searchBusAddress){
 		})
 	})
 }
+
+function Pulse( address, searchBusAddress){
+	address= address? Promise.resolve( address): findPulseAddress( searchBusAddress)
+	EventEmitter.call(this)
+	
+
+	add( "card")
+	var add= baseName=> {
+		let
+		  first= baseName.slice( 0, 1),
+		  cap= first.toUpperString(),
+		  rest= baseName.slice( 1),
+		  plural= rest+ baseName.plural? baseName.plural: "s",
+		  member= "_"+ baseName+ baseName.plural? baseName.plural "s",
+		  newObj= "New"+ cap+ plural,
+		  removedObj= "Removed"+ cap+ plural,
+		  map= {},
+		  v
+		
+	}
+
+	this.core= address.then( address=> {
+		
+	})
+	
+}
+Pulse.prototype= Object.create( EventEmitter.prototype, {
+	cards: {
+		get: function(){
+			return this._cards
+		}
+	}
+})
+
 
 findPulseAddress().then(console.log)
 process.on("unhandledRejection", err=> console.error(err))
