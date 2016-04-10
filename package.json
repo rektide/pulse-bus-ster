@@ -19,6 +19,6 @@
 	"license": "X",
 	"dependencies": {
 		"dbus-native": "^0.2.0",
-		"dbus-object-list": "^1.0.0"
+		"dbus-object-list": "^1.0.1"
 	}
 }

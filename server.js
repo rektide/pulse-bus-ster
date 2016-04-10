@@ -38,7 +38,7 @@ function Pulse( opts){
 	  searchedPulse= opts.searchBusAddress&& findPulseAddress( opts.searchBusAddress),
 	  address= opts.address|| searchedPulse,
 	  fallthrough= !address&& findPulseAddress(),
-	  bus= opts.bus|| Promise.resolve( address|| fallthrough).then( busAddress=> DBus.createClient({ busAddress}));
+	  bus= opts.bus|| Promise.resolve( address|| fallthrough).then( busAddress=> DBus.createClient({ busAddress, direct: true}));
 	this.bus= bus
 	this.core1= bus.then( bus=> {
 		return new Promise(( resolve, reject)=>{
