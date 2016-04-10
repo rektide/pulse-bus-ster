@@ -11,10 +11,14 @@
 		"type": "git",
 		"url": "https://archive.voodoowarez.com/pulsebus"
 	},
-	"keywords": ["pulseaudio", "dbus"],
+	"keywords": [
+		"pulseaudio",
+		"dbus"
+	],
 	"author": "rektide de la faye",
 	"license": "X",
 	"dependencies": {
-		"dbus-native": "^0.2.0"
+		"dbus-native": "^0.2.0",
+		"dbus-object-list": "^1.0.0"
 	}
 }

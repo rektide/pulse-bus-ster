@@ -1,7 +1,10 @@
 #!/usr/bin/env node
+"use strict"
 
 var
-  DBus= require("dbus-native")
+  DBus= require("dbus-native"),
+  DBusObjectList= require("dbus-object-list"),
+  EventEmitter= require("events").EventEmitter
 
 function findPulseAddress( searchBusAddress){
 	var env= process.env.PULSE_DBUS_SERVER
@@ -19,47 +22,49 @@ function findPulseAddress( searchBusAddress){
 			}
 			lookup.Address(function( err, address){
 				if( err){
-					return reject(err)
+					return reject( err)
 				}
-				resolve(addr)
+				resolve( address)
 			})
 		})
 	})
 }
 
-function Pulse( address, searchBusAddress){
-	address= address? Promise.resolve( address): findPulseAddress( searchBusAddress)
-	EventEmitter.call(this)
-	
-
-	add( "card")
-	var add= baseName=> {
-		let
-		  first= baseName.slice( 0, 1),
-		  cap= first.toUpperString(),
-		  rest= baseName.slice( 1),
-		  plural= rest+ baseName.plural? baseName.plural: "s",
-		  member= "_"+ baseName+ baseName.plural? baseName.plural "s",
-		  newObj= "New"+ cap+ plural,
-		  removedObj= "Removed"+ cap+ plural,
-		  map= {},
-		  v
-		
-	}
-
-	this.core= address.then( address=> {
-		
+function Pulse( opts){
+	EventEmitter.call( this)
+	opts= opts|| {}
+	// we might have-in decending priority- a connected pulse `bus`, an pulse `address`, or a `searchBusAddress`
+	let
+	  searchedPulse= opts.searchBusAddress&& findPulseAddress( opts.searchBusAddress),
+	  address= opts.address|| searchedPulse,
+	  fallthrough= !address&& findPulseAddress(),
+	  bus= opts.bus|| Promise.resolve( address|| fallthrough).then( busAddress=> DBus.createClient({ busAddress}));
+	this.bus= bus
+	this.core1= bus.then( bus=> {
+		return new Promise(( resolve, reject)=>{
+			bus
+			  .getService("org.PulseAudio.Core1")
+			  .getInterface("/org/pulseaudio/core1", "org.PulseAudio.Core1", (err, core1)=>{
+				if( err) return reject( err)
+				resolve( core1)
+			  })
+		})
 	})
-	
+
+	let
+	  emit= this.emit.bind( this),
+	  busFactory= ()=> this.bus,
+	  cards= DBusObjectList( "card", this.core1, emit, busFactory),
+	  all= [ cards.done]
+	this.cards= cards.value
+	this.loaded= Promise.all( all).then(()=> this)
 }
-Pulse.prototype= Object.create( EventEmitter.prototype, {
-	cards: {
-		get: function(){
-			return this._cards
-		}
-	}
-})
+Pulse.prototype= Object.create( EventEmitter.prototype)
+Pulse.prototype.constructor= Pulse
 
-
-findPulseAddress().then(console.log)
-process.on("unhandledRejection", err=> console.error(err))
+if( require.main=== module){
+	process.on("unhandledRejection", err=> console.error("ERROR:", err, err.stack))
+	;(new Pulse()).loaded.then( p=>{
+		console.log("ok", p.cards)
+	})
+}
