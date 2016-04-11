@@ -46,16 +46,19 @@ function Pulse( opts){
 			bus
 			  .getInterface("/org/pulseaudio/core1", "org.PulseAudio.Core1", (err, core1)=>{
 				if( err) return reject( err)
-				resolve( core1)
+				core1.ListenForSignal("", [], ()=> {
+					resolve( core1)
+				})
 			  })
 		})
 	})
 
 	let
 	  emit= this.emit.bind( this),
-	  serviceFactory= ()=> this.pulseService,
 	  pathCache= {},
-	  cards= DBusObjectList( Card, this.core1, {emit, serviceFactory, pathCache}),
+	  serviceFactory= ()=> this.pulseService,
+	  listOpts= { emit, pathCache, serviceFactory, eventTarget: this.core1},
+	  cards= DBusObjectList( Card, this.core1, listOpts),
 	  all= [ cards.done]
 	this.cards= cards.value
 	this.loaded= Promise.all( all).then(()=> this)
@@ -66,7 +69,20 @@ Pulse.prototype.constructor= Pulse
 if( require.main=== module){
 	process.on("unhandledRejection", err=> console.error("ERROR:", err, err.stack))
 	;(new Pulse()).loaded.then( p=>{
-		console.log(p.cards)
-		setTimeout(()=> console.log(p.cards), 2000)
+		function getNames(){
+			let
+			  paths= Object.keys(p.cards),
+			  cards= paths.map( path=> p.cards[path])
+			return cards.map(card=> new Promise(( resolve, reject)=>{
+				card.Name(( err, name)=> {
+					if(err) return reject(err)
+					resolve(name)
+				})
+			}))
+		}
+		function printNames(){
+			Promise.all( getNames()).then(console.log)
+		}
+		setInterval(printNames, 5000)
 	})
 }
