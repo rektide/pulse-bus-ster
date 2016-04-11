@@ -38,12 +38,12 @@ function Pulse( opts){
 	  searchedPulse= opts.searchBusAddress&& findPulseAddress( opts.searchBusAddress),
 	  address= opts.address|| searchedPulse,
 	  fallthrough= !address&& findPulseAddress(),
-	  bus= opts.bus|| Promise.resolve( address|| fallthrough).then( busAddress=> DBus.createClient({ busAddress, direct: true}));
+	  bus= opts.bus|| Promise.resolve( address|| fallthrough).then( busAddress=> DBus.createClient({ busAddress, direct: true}))
 	this.bus= bus
-	this.core1= bus.then( bus=> {
+	this.pulseService= bus.then( bus=> bus.getService( "org.PulseAudio.Core1"))
+	this.core1= this.pulseService.then( bus=> {
 		return new Promise(( resolve, reject)=>{
 			bus
-			  .getService("org.PulseAudio.Core1")
 			  .getInterface("/org/pulseaudio/core1", "org.PulseAudio.Core1", (err, core1)=>{
 				if( err) return reject( err)
 				resolve( core1)
@@ -53,8 +53,9 @@ function Pulse( opts){
 
 	let
 	  emit= this.emit.bind( this),
-	  busFactory= ()=> this.bus,
-	  cards= DBusObjectList( "card", this.core1, emit, busFactory),
+	  serviceFactory= ()=> this.pulseService,
+	  baseInterface= "org.PulseAudio.Core1",
+	  cards= DBusObjectList( "card", this.core1, {emit, serviceFactory, baseInterface}),
 	  all= [ cards.done]
 	this.cards= cards.value
 	this.loaded= Promise.all( all).then(()=> this)
@@ -65,6 +66,7 @@ Pulse.prototype.constructor= Pulse
 if( require.main=== module){
 	process.on("unhandledRejection", err=> console.error("ERROR:", err, err.stack))
 	;(new Pulse()).loaded.then( p=>{
-		console.log("ok", p.cards)
+		console.log(p.cards)
+		setTimeout(()=> console.log(p.cards), 2000)
 	})
 }
