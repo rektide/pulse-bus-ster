@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 "use strict"
-
-var
+let
+  Card= require("./Card"),
   DBus= require("dbus-native"),
   DBusObjectList= require("dbus-object-list"),
   EventEmitter= require("events").EventEmitter
@@ -54,8 +54,8 @@ function Pulse( opts){
 	let
 	  emit= this.emit.bind( this),
 	  serviceFactory= ()=> this.pulseService,
-	  baseInterface= "org.PulseAudio.Core1",
-	  cards= DBusObjectList( "card", this.core1, {emit, serviceFactory, baseInterface}),
+	  pathCache= {},
+	  cards= DBusObjectList( Card, this.core1, {emit, serviceFactory, pathCache}),
 	  all= [ cards.done]
 	this.cards= cards.value
 	this.loaded= Promise.all( all).then(()=> this)
